@@ -14,13 +14,21 @@
         <section class="section container">
             <h1 class="page-title">Корзина</h1>
 
+            <%
+                // Универсальный хелпер: URL Cloudinary оставляем как есть, локальное имя дополняем /uploads/
+                function imgUrl(filename) {
+                    if (!filename) return '';
+                    return filename.startsWith('http') ? filename : '/uploads/' + filename;
+                }
+            %>
+
             <% if (cartItems.length > 0) { %>
             <div class="cart-layout">
                 <div class="cart-items">
                     <% cartItems.forEach(function(item) { %>
                     <div class="cart-item">
                         <div class="cart-item-image">
-                            <img src="/uploads/<%= item.product.main_image || '' %>"
+                            <img src="<%= imgUrl(item.product.main_image) %>"
                                  alt="<%= item.product.name %>"
                                  onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22160%22><rect fill=%22%23f0f0f0%22 width=%22120%22 height=%22160%22/></svg>'">
                         </div>

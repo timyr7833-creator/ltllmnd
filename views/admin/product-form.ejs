@@ -93,7 +93,7 @@
                             <div class="current-images">
                                 <% product.images.forEach(function(img) { %>
                                 <div class="current-image-item">
-                                    <img src="/uploads/<%= img.filename %>" alt="Фото">
+                                    <img src="<%= img.filename && img.filename.startsWith('http') ? img.filename : '/uploads/' + img.filename %>" alt="Фото">
                                     <div class="image-controls">
                                         <label class="radio-option radio-sm">
                                             <input type="radio" name="main_image_id" value="<%= img.id %>" <%= img.is_main?'checked':'' %>>

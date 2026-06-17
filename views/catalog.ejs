@@ -21,12 +21,20 @@
                 <% }); %>
             </div>
 
+            <%
+                // Универсальный хелпер: URL Cloudinary оставляем как есть, локальное имя дополняем /uploads/
+                function imgUrl(filename) {
+                    if (!filename) return '';
+                    return filename.startsWith('http') ? filename : '/uploads/' + filename;
+                }
+            %>
+
             <% if (products.length > 0) { %>
             <div class="products-grid">
                 <% products.forEach(function(p) { %>
                 <a href="/product/<%= p.slug %>" class="product-card">
                     <div class="product-card-image">
-                        <img src="/uploads/<%= p.main_image || '' %>" alt="<%= p.name %>"
+                        <img src="<%= imgUrl(p.main_image) %>" alt="<%= p.name %>"
                              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22><rect fill=%22%23f0f0f0%22 width=%22400%22 height=%22500%22/><text x=%2250%%25%22 y=%2250%%25%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2216%22>LTLLMND</text></svg>'">
                         <% if (p.old_price) { %><span class="product-badge">SALE</span><% } %>
                     </div>

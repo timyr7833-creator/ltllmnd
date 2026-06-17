@@ -4,15 +4,33 @@ const pool = require('../db/pool');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const { requireAdmin } = require('../middleware/auth');
 const {
-    slugify, processImage, deleteImage,
+    slugify, deleteImage,
     STATUS_NAMES, CATEGORIES
 } = require('../utils/helpers');
 
+// ====================== CLOUDINARY ======================
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 // ====================== MULTER ======================
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'ltllmnd',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto' }],
+    },
+});
+
 const upload = multer({
-    dest: path.join(__dirname, '..', 'public', 'uploads', 'temp'),
+    storage: storage,
     limits: { fileSize: 16 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
@@ -23,8 +41,6 @@ const upload = multer({
         }
     }
 });
-
-const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads');
 
 // ====================== ЛОГИН ======================
 router.get('/admin/login', (req, res) => {
@@ -146,10 +162,11 @@ router.post('/admin/products/add', requireAdmin, upload.array('images', 10), asy
 
         if (req.files && req.files.length > 0) {
             for (let i = 0; i < req.files.length; i++) {
-                const filename = await processImage(req.files[i].path, UPLOAD_DIR);
+                // Cloudinary автоматически загружает файл и возвращает URL в req.files[i].path
+                const imageUrl = req.files[i].path;
                 await pool.query(
                     'INSERT INTO product_images (product_id, filename, is_main) VALUES ($1, $2, $3)',
-                    [productId, filename, i === 0]
+                    [productId, imageUrl, i === 0]
                 );
             }
         }
@@ -221,7 +238,8 @@ router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10)
                     [imgId, req.params.id]
                 );
                 if (img.rows.length > 0) {
-                    deleteImage(img.rows[0].filename, UPLOAD_DIR);
+                    // Удаление картинки из Cloudinary по URL
+                    await deleteImage(img.rows[0].filename);
                     await pool.query('DELETE FROM product_images WHERE id = $1', [imgId]);
                 }
             }
@@ -233,10 +251,10 @@ router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10)
                 [req.params.id]
             );
             for (let i = 0; i < req.files.length; i++) {
-                const filename = await processImage(req.files[i].path, UPLOAD_DIR);
+                const imageUrl = req.files[i].path;
                 await pool.query(
                     'INSERT INTO product_images (product_id, filename, is_main) VALUES ($1, $2, $3)',
-                    [req.params.id, filename, parseInt(existingCount.rows[0].c) === 0 && i === 0]
+                    [req.params.id, imageUrl, parseInt(existingCount.rows[0].c) === 0 && i === 0]
                 );
             }
         }
@@ -252,7 +270,7 @@ router.post('/admin/products/delete/:id', requireAdmin, async (req, res) => {
     try {
         const images = await pool.query('SELECT filename FROM product_images WHERE product_id = $1', [req.params.id]);
         for (const img of images.rows) {
-            deleteImage(img.filename, UPLOAD_DIR);
+            await deleteImage(img.filename);
         }
         await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
         res.redirect('/admin/products');
@@ -313,6 +331,7 @@ router.post('/admin/orders/:id/status', requireAdmin, async (req, res) => {
         res.status(500).send('Ошибка при изменении статуса');
     }
 });
+
 // Просмотр деталей одного заказа
 router.get('/admin/orders/:id', requireAdmin, async (req, res) => {
     try {
