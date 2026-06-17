@@ -5,24 +5,35 @@ const fs = require('fs');
 
 const ALLOWED_EXT = ['.png', '.jpg', '.jpeg', '.webp'];
 
-function generateOrderNumber() {
-    return 'LM-' + uuidv4().replace(/-/g, '').substring(0, 8).toUpperCase();
+// ==================== SLUGIFY (исправленная версия) ====================
+function slugify(text) {
+    if (!text) return 'product-' + Date.now();
+
+    const translitMap = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+    };
+
+    let str = text.toString().toLowerCase();
+
+    // Транслитерация русского текста
+    str = str.replace(/[а-яё]/g, char => translitMap[char] || char);
+
+    // Убираем всё кроме букв, цифр, пробелов и дефисов
+    str = str.replace(/[^a-z0-9\s-]/g, '');
+
+    // Заменяем пробелы и множественные дефисы на один дефис
+    str = str.replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+
+    return str || 'product-' + Date.now().toString(36);
 }
 
-function slugify(text) {
-    const map = {
-        'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh',
-        'з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o',
-        'п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts',
-        'ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya'
-    };
-    let result = '';
-    for (const char of text.toLowerCase()) {
-        result += map[char] || char;
-    }
-    result = result.replace(/[^a-z0-9\s-]/g, '');
-    result = result.replace(/[\s-]+/g, '-').replace(/^-|-$/g, '');
-    return result || uuidv4().substring(0, 8);
+// ==================== Остальные функции ====================
+function generateOrderNumber() {
+    return 'LM-' + uuidv4().replace(/-/g, '').substring(0, 8).toUpperCase();
 }
 
 function isAllowedFile(filename) {
@@ -31,18 +42,15 @@ function isAllowedFile(filename) {
 }
 
 async function processImage(inputPath, outputDir) {
-    const ext = path.extname(inputPath).toLowerCase();
     const newName = uuidv4().replace(/-/g, '') + '.jpg';
     const outputPath = path.join(outputDir, newName);
 
     await sharp(inputPath)
         .resize(1200, 1600, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 90 })
+        .jpeg({ quality: 92 })
         .toFile(outputPath);
 
-    // Удаляем оригинальный временный файл
-    fs.unlinkSync(inputPath);
-
+    fs.unlinkSync(inputPath); // удаляем оригинал
     return newName;
 }
 
