@@ -178,13 +178,16 @@ router.post('/admin/products/add', requireAdmin, upload.array('images', 10), asy
     }
 });
 
-// Редактирование товара
+// ====================== РЕДАКТИРОВАНИЕ ТОВАРА ======================
+
+// Форма редактирования
 router.get('/admin/products/edit/:id', requireAdmin, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
         if (result.rows.length === 0) return res.redirect('/admin/products');
 
         const product = result.rows[0];
+
         const images = await pool.query(
             'SELECT * FROM product_images WHERE product_id = $1 ORDER BY is_main DESC, id',
             [product.id]
@@ -198,11 +201,12 @@ router.get('/admin/products/edit/:id', requireAdmin, async (req, res) => {
             page: 'admin-products'
         });
     } catch (err) {
-        console.error(err);
+        console.error('Ошибка при открытии формы редактирования:', err);
         res.status(500).send('Ошибка сервера');
     }
 });
 
+// Сохранение изменений товара
 router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10), async (req, res) => {
     try {
         const {
@@ -210,6 +214,7 @@ router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10)
             in_stock, featured, main_image_id, delete_images
         } = req.body;
 
+        // Обновление информации о товаре
         await pool.query(`
             UPDATE products SET
                 name = $1, description = $2, price = $3,
@@ -217,11 +222,37 @@ router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10)
                 in_stock = $7, featured = $8, updated_at = NOW()
             WHERE id = $9
         `, [
-            name.trim(), description || '', parseFloat(price),
-            old_price ? parseFloat(old_price) : null, category || 'other',
-            sizes || '', in_stock === 'on', featured === 'on', req.params.id
+            name.trim(),
+            description || '',
+            parseFloat(price),
+            old_price ? parseFloat(old_price) : null,
+            category || 'other',
+            sizes || '',
+            in_stock === 'on',
+            featured === 'on',
+            req.params.id
         ]);
 
+        // === УДАЛЕНИЕ ВЫБРАННЫХ ФОТОГРАФИЙ ===
+        if (delete_images) {
+            const idsToDelete = Array.isArray(delete_images) ? delete_images : [delete_images];
+
+            for (const imgId of idsToDelete) {
+                if (!imgId) continue;
+
+                const img = await pool.query(
+                    'SELECT filename FROM product_images WHERE id = $1 AND product_id = $2',
+                    [imgId, req.params.id]
+                );
+
+                if (img.rows.length > 0) {
+                    deleteImage(img.rows[0].filename, UPLOAD_DIR);   // ← важно 2 параметра
+                    await pool.query('DELETE FROM product_images WHERE id = $1', [imgId]);
+                }
+            }
+        }
+
+        // === УСТАНОВКА ГЛАВНОГО ИЗОБРАЖЕНИЯ ===
         if (main_image_id) {
             await pool.query('UPDATE product_images SET is_main = false WHERE product_id = $1', [req.params.id]);
             await pool.query(
@@ -230,53 +261,51 @@ router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10)
             );
         }
 
-        if (delete_images) {
-            const ids = Array.isArray(delete_images) ? delete_images : [delete_images];
-            for (const imgId of ids) {
-                const img = await pool.query(
-                    'SELECT filename FROM product_images WHERE id = $1 AND product_id = $2',
-                    [imgId, req.params.id]
-                );
-                if (img.rows.length > 0) {
-                    // Удаление картинки из Cloudinary по URL
-                    await deleteImage(img.rows[0].filename);
-                    await pool.query('DELETE FROM product_images WHERE id = $1', [imgId]);
-                }
-            }
-        }
-
+        // === ДОБАВЛЕНИЕ НОВЫХ ИЗОБРАЖЕНИЙ ===
         if (req.files && req.files.length > 0) {
             const existingCount = await pool.query(
                 'SELECT COUNT(*) as c FROM product_images WHERE product_id = $1',
                 [req.params.id]
             );
+
             for (let i = 0; i < req.files.length; i++) {
-                const imageUrl = req.files[i].path;
-                await pool.query(
-                    'INSERT INTO product_images (product_id, filename, is_main) VALUES ($1, $2, $3)',
-                    [req.params.id, imageUrl, parseInt(existingCount.rows[0].c) === 0 && i === 0]
-                );
+                const filename = await processImage(req.files[i].path, UPLOAD_DIR);
+                await pool.query(`
+                    INSERT INTO product_images (product_id, filename, is_main)
+                    VALUES ($1, $2, $3)
+                `, [
+                    req.params.id,
+                    filename,
+                    parseInt(existingCount.rows[0].c) === 0 && i === 0
+                ]);
             }
         }
 
         res.redirect('/admin/products');
+
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Ошибка при обновлении товара');
+        console.error('Ошибка при обновлении товара:', err);
+        res.status(500).send('Ошибка при обновлении товара: ' + err.message);
     }
 });
 
+// Удаление товара
 router.post('/admin/products/delete/:id', requireAdmin, async (req, res) => {
     try {
-        const images = await pool.query('SELECT filename FROM product_images WHERE product_id = $1', [req.params.id]);
+        const images = await pool.query(
+            'SELECT filename FROM product_images WHERE product_id = $1',
+            [req.params.id]
+        );
+
         for (const img of images.rows) {
-            await deleteImage(img.filename);
+            deleteImage(img.filename, UPLOAD_DIR);
         }
+
         await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
         res.redirect('/admin/products');
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Ошибка');
+        console.error('Ошибка при удалении товара:', err);
+        res.status(500).send('Ошибка при удалении товара');
     }
 });
 
