@@ -36,7 +36,10 @@ function isAllowedFile(filename) {
 // ==================== УДАЛЕНИЕ КАРТИНКИ (защищённая версия) ====================
 async function deleteImage(imageUrl) {
     try {
-        if (!imageUrl || typeof imageUrl !== 'string') return;
+        if (!imageUrl || typeof imageUrl !== 'string') {
+            console.log('ℹ deleteImage: пустое значение, пропускаем');
+            return;
+        }
         if (imageUrl === 'no-image.png') return;
 
         // Если это URL Cloudinary — пытаемся удалить
