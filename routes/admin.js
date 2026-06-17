@@ -172,12 +172,12 @@ router.post('/admin/products/add', requireAdmin, upload.array('images', 10), asy
 
         res.redirect('/admin/products');
     } catch (err) {
-        console.error(err);
+        console.error('Ошибка при добавлении товара:', err);
         res.status(500).send('Ошибка при добавлении товара');
     }
 });
 
-// Редактирование товара
+// ====================== РЕДАКТИРОВАНИЕ ТОВАРА ======================
 router.get('/admin/products/edit/:id', requireAdmin, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
@@ -209,6 +209,7 @@ router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10)
             in_stock, featured, main_image_id, delete_images
         } = req.body;
 
+        // Обновление основных полей товара
         await pool.query(`
             UPDATE products SET
                 name = $1, description = $2, price = $3,
@@ -221,6 +222,7 @@ router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10)
             sizes || '', in_stock === 'on', featured === 'on', req.params.id
         ]);
 
+        // Смена главной фотографии
         if (main_image_id) {
             await pool.query('UPDATE product_images SET is_main = false WHERE product_id = $1', [req.params.id]);
             await pool.query(
@@ -229,6 +231,7 @@ router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10)
             );
         }
 
+        // Удаление выбранных фотографий
         if (delete_images) {
             const ids = Array.isArray(delete_images) ? delete_images : [delete_images];
             for (const imgId of ids) {
@@ -243,6 +246,7 @@ router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10)
             }
         }
 
+        // Загрузка новых фотографий
         if (req.files && req.files.length > 0) {
             const existingCount = await pool.query(
                 'SELECT COUNT(*) as c FROM product_images WHERE product_id = $1',
@@ -260,10 +264,11 @@ router.post('/admin/products/edit/:id', requireAdmin, upload.array('images', 10)
         res.redirect('/admin/products');
     } catch (err) {
         console.error('Ошибка при обновлении товара:', err);
-        res.status(500).send('Ошибка при обновлении товара');
+        res.status(500).send('Ошибка при обновлении товара: ' + err.message);
     }
 });
 
+// ====================== УДАЛЕНИЕ ТОВАРА ======================
 router.post('/admin/products/delete/:id', requireAdmin, async (req, res) => {
     try {
         const images = await pool.query('SELECT filename FROM product_images WHERE product_id = $1', [req.params.id]);
@@ -273,7 +278,7 @@ router.post('/admin/products/delete/:id', requireAdmin, async (req, res) => {
         await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
         res.redirect('/admin/products');
     } catch (err) {
-        console.error(err);
+        console.error('Ошибка при удалении товара:', err);
         res.status(500).send('Ошибка');
     }
 });
