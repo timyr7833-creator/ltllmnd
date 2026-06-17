@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказы — LTLLMND</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <main class="main-content">
+        <section class="section container">
+            <h1 class="page-title">Заказы</h1>
+            <div class="admin-nav">
+                <a href="/admin" class="admin-nav-link">Обзор</a>
+                <a href="/admin/products" class="admin-nav-link">Товары</a>
+                <a href="/admin/orders" class="admin-nav-link active">Заказы</a>
+            </div>
+            <div class="category-filters">
+                <a href="/admin/orders" class="filter-btn <%= !statusFilter?'active':'' %>">Все</a>
+                <a href="/admin/orders?status=new" class="filter-btn <%= statusFilter==='new'?'active':'' %>">Новые</a>
+                <a href="/admin/orders?status=confirmed" class="filter-btn <%= statusFilter==='confirmed'?'active':'' %>">Подтв.</a>
+                <a href="/admin/orders?status=paid" class="filter-btn <%= statusFilter==='paid'?'active':'' %>">Оплачен</a>
+                <a href="/admin/orders?status=shipped" class="filter-btn <%= statusFilter==='shipped'?'active':'' %>">Отправлен</a>
+                <a href="/admin/orders?status=delivered" class="filter-btn <%= statusFilter==='delivered'?'active':'' %>">Доставлен</a>
+            </div>
+            <% if (orders.length > 0) { %>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead><tr><th>Номер</th><th>Клиент</th><th>Контакты</th><th>Товары</th><th>Сумма</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
+                    <tbody>
+                        <% orders.forEach(function(o) { %>
+                        <tr>
+                            <td><strong><%= o.order_number %></strong></td>
+                            <td><%= o.customer_name %></td>
+                            <td><small><%= o.customer_email %><br><%= o.customer_phone %></small></td>
+                            <td><% o.items.forEach(function(it) { %><small><%= it.product_name %> <% if(it.size){%>(<%= it.size %>)<%}%> ×<%= it.quantity %><br></small><% }); %></td>
+                            <td><%= formatPrice(o.total_price) %> ₽</td>
+                            <td><span class="status-badge status-<%= o.status %>"><%= statusNames[o.status]||o.status %></span></td>
+                            <td><small><%= new Date(o.created_at).toLocaleDateString('ru-RU') %></small></td>
+                            <td>
+                                <form method="POST" action="/admin/orders/<%= o.id %>/status" class="status-form">
+                                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <select name="status" class="form-input form-input-sm" onchange="this.form.submit()">
+                                        <option value="new" <%= o.status==='new'?'selected':'' %>>Новый</option>
+                                        <option value="confirmed" <%= o.status==='confirmed'?'selected':'' %>>Подтверждён</option>
+                                        <option value="paid" <%= o.status==='paid'?'selected':'' %>>Оплачен</option>
+                                        <option value="shipped" <%= o.status==='shipped'?'selected':'' %>>Отправлен</option>
+                                        <option value="delivered" <%= o.status==='delivered'?'selected':'' %>>Доставлен</option>
+                                        <option value="cancelled" <%= o.status==='cancelled'?'selected':'' %>>Отменён</option>
+                                    </select>
+                                </form>
+                            </td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+            <div class="empty-state"><p>Заказов пока нет</p></div>
+            <% } %>
+        </section>
+    </main>
+    <%- include('../partials/footer') %>
+</body>
+</html>

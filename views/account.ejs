@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет — LTLLMND</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/header') %>
+    <main class="main-content">
+        <section class="section container">
+            <div class="account-header">
+                <h1 class="page-title">Личный кабинет</h1>
+                <a href="/logout" class="btn btn-outline">Выйти</a>
+            </div>
+
+            <div class="account-grid">
+                <!-- Профиль -->
+                <div class="account-section">
+                    <h2 class="account-section-title">Мои данные</h2>
+                    <form method="POST" action="/account" class="account-form">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="first_name">Имя</label>
+                                <input type="text" id="first_name" name="first_name"
+                                       class="form-input" value="<%= user.first_name %>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="last_name">Фамилия</label>
+                                <input type="text" id="last_name" name="last_name"
+                                       class="form-input" value="<%= user.last_name %>">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" value="<%= user.email %>" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Телефон</label>
+                            <input type="tel" id="phone" name="phone" class="form-input"
+                                   value="<%= user.phone %>">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="address">Адрес доставки</label>
+                            <textarea id="address" name="address" class="form-input form-textarea"
+                                      rows="3"><%= user.address %></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-black">Сохранить</button>
+                    </form>
+                </div>
+
+                <!-- Смена пароля -->
+                <div class="account-section">
+                    <h2 class="account-section-title">Сменить пароль</h2>
+                    <form method="POST" action="/account/password" class="account-form">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <div class="form-group">
+                            <label class="form-label" for="current_password">Текущий пароль</label>
+                            <input type="password" id="current_password" name="current_password"
+                                   class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="new_password">Новый пароль (мин. 6 символов)</label>
+                            <input type="password" id="new_password" name="new_password"
+                                   class="form-input" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="new_password_confirm">Повторите новый пароль</label>
+                            <input type="password" id="new_password_confirm" name="new_password_confirm"
+                                   class="form-input" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-outline">Сменить пароль</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Заказы -->
+            <div class="account-section" style="margin-top:48px">
+                <h2 class="account-section-title">Мои заказы</h2>
+                <% if (orders.length > 0) { %>
+                <div class="orders-list">
+                    <% orders.forEach(function(order) { %>
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <div>
+                                <strong><%= order.order_number %></strong>
+                                <span class="order-date"><%= new Date(order.created_at).toLocaleDateString('ru-RU') %></span>
+                            </div>
+                            <span class="status-badge status-<%= order.status %>"><%= statusNames[order.status] || order.status %></span>
+                        </div>
+                        <div class="order-card-items">
+                            <% order.items.forEach(function(item) { %>
+                            <div class="order-card-item">
+                                <span><%= item.product_name %><% if(item.size){%> (<%= item.size %>)<%}%> × <%= item.quantity %></span>
+                                <span><%= formatPrice(item.price * item.quantity) %> ₽</span>
+                            </div>
+                            <% }); %>
+                        </div>
+                        <div class="order-card-total">
+                            <span>Итого</span>
+                            <span><%= formatPrice(order.total_price) %> ₽</span>
+                        </div>
+                    </div>
+                    <% }); %>
+                </div>
+                <% } else { %>
+                <div class="empty-state">
+                    <span class="material-icons-outlined">receipt_long</span>
+                    <p>У вас пока нет заказов</p>
+                    <a href="/catalog" class="btn btn-black">Перейти в каталог</a>
+                </div>
+                <% } %>
+            </div>
+        </section>
+    </main>
+    <%- include('partials/footer') %>
+</body>
+</html>

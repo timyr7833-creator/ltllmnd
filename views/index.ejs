@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LTLLMND — Минималистичная одежда</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/header') %>
+
+    <main class="main-content">
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">LTLLMND</h1>
+                <p class="hero-subtitle">LESS IS MORE</p>
+                <a href="/catalog" class="btn btn-white">Смотреть коллекцию</a>
+            </div>
+        </section>
+
+        <% if (products.length > 0) { %>
+        <section class="section container">
+            <h2 class="section-title">Избранное</h2>
+            <div class="products-grid">
+                <% products.forEach(function(p) { %>
+                <a href="/product/<%= p.slug %>" class="product-card">
+                    <div class="product-card-image">
+                        <img src="/uploads/<%= p.main_image || '' %>"
+                             alt="<%= p.name %>"
+                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22><rect fill=%22%23f0f0f0%22 width=%22400%22 height=%22500%22/><text x=%2250%%25%22 y=%2250%%25%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2216%22>LTLLMND</text></svg>'">
+                        <% if (p.old_price) { %>
+                        <span class="product-badge">SALE</span>
+                        <% } %>
+                    </div>
+                    <div class="product-card-info">
+                        <h3><%= p.name %></h3>
+                        <div class="product-card-price">
+                            <span class="price"><%= formatPrice(p.price) %> ₽</span>
+                            <% if (p.old_price) { %>
+                            <span class="old-price"><%= formatPrice(p.old_price) %> ₽</span>
+                            <% } %>
+                        </div>
+                    </div>
+                </a>
+                <% }); %>
+            </div>
+        </section>
+        <% } %>
+
+        <section class="section section-dark">
+            <div class="container">
+                <div class="about-block">
+                    <h2 class="section-title">О бренде</h2>
+                    <p class="about-text">LTLLMND — это бренд минималистичной одежды, созданный для людей, которые ценят простоту, качество материалов и продуманный крой.</p>
+                    <p class="about-text">Мы используем только качественные ткани, следим за каждой деталью и создаём вещи, которые служат долго.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <%- include('partials/footer') %>
+    <script src="/js/main.js"></script>
+</body>
+</html>

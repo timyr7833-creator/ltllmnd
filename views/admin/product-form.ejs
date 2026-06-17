@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= product ? 'Редактировать' : 'Добавить' %> товар — LTLLMND</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <main class="main-content">
+        <section class="section container">
+            <h1 class="page-title"><%= product ? 'Редактировать товар' : 'Добавить товар' %></h1>
+            <div class="admin-nav">
+                <a href="/admin" class="admin-nav-link">Обзор</a>
+                <a href="/admin/products" class="admin-nav-link active">Товары</a>
+                <a href="/admin/orders" class="admin-nav-link">Заказы</a>
+            </div>
+
+            <form method="POST"
+                  action="<%= product ? '/admin/products/edit/'+product.id : '/admin/products/add' %>"
+                  enctype="multipart/form-data" class="product-edit-form">
+
+                <div class="form-grid">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label" for="name">Название *</label>
+                            <input type="text" id="name" name="name" class="form-input"
+                                   value="<%= product ? product.name : (formData.name||'') %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="description">Описание</label>
+                            <textarea id="description" name="description" class="form-input form-textarea" rows="5"><%= product ? (product.description||'') : (formData.description||'') %></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="price">Цена *</label>
+                                <input type="number" id="price" name="price" class="form-input" step="1"
+                                       value="<%= product ? Math.round(product.price) : (formData.price||'') %>" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="old_price">Старая цена</label>
+                                <input type="number" id="old_price" name="old_price" class="form-input" step="1"
+                                       value="<%= product && product.old_price ? Math.round(product.old_price) : (formData.old_price||'') %>">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="category">Категория</label>
+                                <select id="category" name="category" class="form-input">
+                                    <% var cc = product ? product.category : (formData.category||'other'); %>
+                                    <% Object.keys(categories).forEach(function(k) { %>
+                                    <option value="<%= k %>" <%= cc===k?'selected':'' %>><%= categories[k] %></option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="sizes">Размеры (через запятую)</label>
+                                <input type="text" id="sizes" name="sizes" class="form-input" placeholder="XS,S,M,L,XL"
+                                       value="<%= product ? (product.sizes||'') : (formData.sizes||'') %>">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="in_stock" <%= (product ? product.in_stock : true) ? 'checked' : '' %>>
+                                <span class="checkmark"></span><span>В наличии</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="featured" <%= (product && product.featured) ? 'checked' : '' %>>
+                                <span class="checkmark"></span><span>На главной</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">Добавить фотографии</label>
+                            <div class="file-upload">
+                                <input type="file" name="images" id="images" multiple accept="image/*" class="file-input" onchange="previewImages(this)">
+                                <label for="images" class="file-label">
+                                    <span class="material-icons-outlined">cloud_upload</span>
+                                    <span>Выберите файлы</span>
+                                </label>
+                            </div>
+                            <div id="image-preview" class="image-preview-grid"></div>
+                        </div>
+
+                        <% if (product && product.images && product.images.length > 0) { %>
+                        <div class="form-group">
+                            <label class="form-label">Текущие фотографии</label>
+                            <div class="current-images">
+                                <% product.images.forEach(function(img) { %>
+                                <div class="current-image-item">
+                                    <img src="/uploads/<%= img.filename %>" alt="Фото">
+                                    <div class="image-controls">
+                                        <label class="radio-option radio-sm">
+                                            <input type="radio" name="main_image_id" value="<%= img.id %>" <%= img.is_main?'checked':'' %>>
+                                            <span>Главное</span>
+                                        </label>
+                                        <label class="checkbox-option checkbox-sm">
+                                            <input type="checkbox" name="delete_images" value="<%= img.id %>">
+                                            <span class="checkmark"></span><span>Удалить</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-black"><%= product ? 'Сохранить' : 'Добавить товар' %></button>
+                    <a href="/admin/products" class="btn btn-outline">Отмена</a>
+                </div>
+            </form>
+        </section>
+    </main>
+    <%- include('../partials/footer') %>
+    <script>
+    function previewImages(input) {
+        var preview = document.getElementById('image-preview');
+        preview.innerHTML = '';
+        if (input.files) {
+            Array.from(input.files).forEach(function(file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var div = document.createElement('div');
+                    div.className = 'preview-item';
+                    div.innerHTML = '<img src="'+e.target.result+'" alt="Preview">';
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    }
+    </script>
+</body>
+</html>

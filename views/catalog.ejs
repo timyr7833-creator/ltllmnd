@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог — LTLLMND</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/header') %>
+    <main class="main-content">
+        <section class="section container">
+            <h1 class="page-title"><%= currentCategory %></h1>
+
+            <div class="category-filters">
+                <a href="/catalog" class="filter-btn <%= !selectedCategory ? 'active' : '' %>">Все</a>
+                <% Object.keys(categories).forEach(function(key) { %>
+                <a href="/catalog/<%= key %>" class="filter-btn <%= selectedCategory === key ? 'active' : '' %>"><%= categories[key] %></a>
+                <% }); %>
+            </div>
+
+            <% if (products.length > 0) { %>
+            <div class="products-grid">
+                <% products.forEach(function(p) { %>
+                <a href="/product/<%= p.slug %>" class="product-card">
+                    <div class="product-card-image">
+                        <img src="/uploads/<%= p.main_image || '' %>" alt="<%= p.name %>"
+                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22500%22><rect fill=%22%23f0f0f0%22 width=%22400%22 height=%22500%22/><text x=%2250%%25%22 y=%2250%%25%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2216%22>LTLLMND</text></svg>'">
+                        <% if (p.old_price) { %><span class="product-badge">SALE</span><% } %>
+                    </div>
+                    <div class="product-card-info">
+                        <h3><%= p.name %></h3>
+                        <div class="product-card-price">
+                            <span class="price"><%= formatPrice(p.price) %> ₽</span>
+                            <% if (p.old_price) { %><span class="old-price"><%= formatPrice(p.old_price) %> ₽</span><% } %>
+                        </div>
+                        <% if (p.sizes) { %>
+                        <div class="product-card-sizes"><%= p.sizes.split(',').join(' / ') %></div>
+                        <% } %>
+                    </div>
+                </a>
+                <% }); %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <span class="material-icons-outlined">inventory_2</span>
+                <p>В этой категории пока нет товаров</p>
+            </div>
+            <% } %>
+        </section>
+    </main>
+    <%- include('partials/footer') %>
+    <script src="/js/main.js"></script>
+</body>
+</html>

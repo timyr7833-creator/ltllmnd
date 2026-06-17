@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title + ' — LTLLMND' : 'LTLLMND' %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner container">
+            <a href="/" class="logo">LTLLMND</a>
+            <nav class="nav">
+                <a href="/catalog">Каталог</a>
+                <a href="/delivery">Доставка</a>
+                <a href="/payment">Оплата</a>
+            </nav>
+            <div class="header-actions">
+                <a href="/cart" class="cart-link">
+                    <span class="material-icons-outlined">shopping_bag</span>
+                    <span class="cart-badge" id="cart-badge"><%= cartCount %></span>
+                </a>
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <span class="material-icons-outlined">menu</span>
+                </button>
+            </div>
+        </div>
+        <div class="mobile-menu" id="mobile-menu">
+            <a href="/catalog">Каталог</a>
+            <a href="/delivery">Доставка</a>
+            <a href="/payment">Оплата</a>
+            <a href="/returns">Возврат</a>
+        </div>
+    </header>
+
+    <% if (typeof errors !== 'undefined' && errors && errors.length > 0) { %>
+    <div class="flash-container container">
+        <% errors.forEach(function(msg) { %>
+        <div class="flash flash-error">
+            <%= msg %>
+            <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+        </div>
+        <% }); %>
+    </div>
+    <% } %>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="flash-container container">
+        <div class="flash flash-error">
+            <%= error %>
+            <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+        </div>
+    </div>
+    <% } %>
+
+    <main class="main-content">
+        <%- body %>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3 class="footer-logo">LTLLMND</h3>
+                    <p class="footer-desc">Минималистичная одежда для тех, кто ценит качество и стиль.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Покупателям</h4>
+                    <a href="/catalog">Каталог</a>
+                    <a href="/delivery">Доставка</a>
+                    <a href="/payment">Оплата</a>
+                    <a href="/returns">Возврат и обмен</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Информация</h4>
+                    <a href="/offer">Публичная оферта</a>
+                    <a href="/privacy">Политика конфиденциальности</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Контакты</h4>
+                    <p>info@ltllmnd.com</p>
+                    <p>+7 (999) 123-45-67</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 LTLLMND. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

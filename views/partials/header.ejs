@@ -1,0 +1,61 @@
+<header class="header">
+    <div class="header-inner container">
+        <a href="/" class="logo">LTLLMND</a>
+        <nav class="nav">
+            <a href="/catalog">Каталог</a>
+            <a href="/delivery">Доставка</a>
+            <a href="/payment">Оплата</a>
+        </nav>
+        <div class="header-actions">
+            <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+                <a href="/account" class="user-link" title="<%= currentUser.name %>">
+                    <span class="material-icons-outlined">person</span>
+                </a>
+            <% } else { %>
+                <a href="/login" class="user-link" title="Войти">
+                    <span class="material-icons-outlined">person_outline</span>
+                </a>
+            <% } %>
+            <a href="/cart" class="cart-link">
+                <span class="material-icons-outlined">shopping_bag</span>
+                <span class="cart-badge" id="cart-badge"><%= cartCount %></span>
+            </a>
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span class="material-icons-outlined">menu</span>
+            </button>
+        </div>
+    </div>
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="/catalog">Каталог</a>
+        <a href="/delivery">Доставка</a>
+        <a href="/payment">Оплата</a>
+        <a href="/returns">Возврат</a>
+        <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+            <a href="/account">Личный кабинет</a>
+            <a href="/logout">Выйти</a>
+        <% } else { %>
+            <a href="/login">Войти</a>
+            <a href="/register">Регистрация</a>
+        <% } %>
+    </div>
+</header>
+
+<meta name="csrf-token" content="<%= csrfToken %>">
+
+<% if (typeof errors !== 'undefined' && errors && errors.length > 0) { %>
+<div class="flash-container container">
+    <% errors.forEach(function(msg) { %>
+    <div class="flash flash-error"><%= msg %><button class="flash-close" onclick="this.parentElement.remove()">&times;</button></div>
+    <% }); %>
+</div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+<div class="flash-container container">
+    <div class="flash flash-error"><%= error %><button class="flash-close" onclick="this.parentElement.remove()">&times;</button></div>
+</div>
+<% } %>
+<% if (typeof success !== 'undefined' && success) { %>
+<div class="flash-container container">
+    <div class="flash flash-success"><%= success %><button class="flash-close" onclick="this.parentElement.remove()">&times;</button></div>
+</div>
+<% } %>

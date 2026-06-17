@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа — LTLLMND</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/header') %>
+    <main class="main-content">
+        <section class="section container">
+            <h1 class="page-title">Оформление заказа</h1>
+            <form method="POST" action="/checkout" class="checkout-layout">
+             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="checkout-form">
+                    <h3>Контактные данные</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="name">Имя и фамилия *</label>
+                        <input type="text" id="name" name="name" class="form-input" value="<%= formData.name || '' %>" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email *</label>
+                            <input type="email" id="email" name="email" class="form-input" value="<%= formData.email || '' %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Телефон *</label>
+                            <input type="tel" id="phone" name="phone" class="form-input" value="<%= formData.phone || '' %>" required placeholder="+7 (___) ___-__-__">
+                        </div>
+                    </div>
+
+                    <h3>Доставка</h3>
+                    <div class="form-group">
+                        <label class="form-label">Способ доставки</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="delivery_method" value="cdek" <%= (formData.delivery_method||'cdek')==='cdek'?'checked':'' %>>
+                                <span>СДЭК (2-7 дней)</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="delivery_method" value="post" <%= formData.delivery_method==='post'?'checked':'' %>>
+                                <span>Почта России (5-14 дней)</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="delivery_method" value="pickup" <%= formData.delivery_method==='pickup'?'checked':'' %>>
+                                <span>Самовывоз (Москва)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="address">Адрес доставки *</label>
+                        <textarea id="address" name="address" class="form-input form-textarea" rows="3" required><%= formData.address || '' %></textarea>
+                    </div>
+
+                    <h3>Оплата</h3>
+                    <div class="form-group">
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="payment_method" value="card" <%= (formData.payment_method||'card')==='card'?'checked':'' %>>
+                                <span>Банковская карта</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="payment_method" value="sbp" <%= formData.payment_method==='sbp'?'checked':'' %>>
+                                <span>СБП</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="comment">Комментарий</label>
+                        <textarea id="comment" name="comment" class="form-input form-textarea" rows="2"><%= formData.comment || '' %></textarea>
+                    </div>
+
+                    <div class="form-group agreements">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="agree_offer" required <%= formData.agree_offer ? 'checked' : '' %>>
+                            <span class="checkmark"></span>
+                            <span>Я согласен(на) с условиями <a href="/offer" target="_blank">публичной оферты</a> *</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="agree_privacy" required <%= formData.agree_privacy ? 'checked' : '' %>>
+                            <span class="checkmark"></span>
+                            <span>Я согласен(на) с <a href="/privacy" target="_blank">политикой конфиденциальности</a> *</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="cart-summary checkout-summary">
+                    <h3>Ваш заказ</h3>
+                    <% cartItems.forEach(function(item) { %>
+                    <div class="summary-item">
+                        <span><%= item.product.name %> <% if(item.size){%>(<%= item.size %>)<%}%> × <%= item.quantity %></span>
+                        <span><%= formatPrice(item.subtotal) %> ₽</span>
+                    </div>
+                    <% }); %>
+                    <div class="summary-total"><span>Итого</span><span><%= formatPrice(total) %> ₽</span></div>
+                    <button type="submit" class="btn btn-black btn-full">Подтвердить заказ</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    <%- include('partials/footer') %>
+    <script src="/js/main.js"></script>
+</body>
+</html>

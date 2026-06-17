@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Товары — LTLLMND</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <%- include('../partials/header') %>
+    <main class="main-content">
+        <section class="section container">
+            <div class="admin-header">
+                <h1 class="page-title">Товары</h1>
+                <a href="/admin/products/add" class="btn btn-black">+ Добавить товар</a>
+            </div>
+            <div class="admin-nav">
+                <a href="/admin" class="admin-nav-link">Обзор</a>
+                <a href="/admin/products" class="admin-nav-link active">Товары</a>
+                <a href="/admin/orders" class="admin-nav-link">Заказы</a>
+            </div>
+            <% if (products.length > 0) { %>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead><tr><th>Фото</th><th>Название</th><th>Категория</th><th>Цена</th><th>В наличии</th><th>Действия</th></tr></thead>
+                    <tbody>
+                        <% products.forEach(function(p) { %>
+                        <tr>
+                            <td><img src="/uploads/<%= p.main_image || '' %>" class="admin-thumb" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22><rect fill=%22%23f0f0f0%22 width=%2260%22 height=%2260%22/></svg>'"></td>
+                            <td><strong><%= p.name %></strong></td>
+                            <td><%= categories[p.category] || p.category %></td>
+                            <td><%= formatPrice(p.price) %> ₽</td>
+                            <td><span class="status-badge status-<%= p.in_stock?'confirmed':'cancelled' %>"><%= p.in_stock?'Да':'Нет' %></span></td>
+                            <td class="actions-cell">
+                                <a href="/admin/products/edit/<%= p.id %>" class="btn btn-sm btn-outline">Ред.</a>
+                                <form method="POST" action="/admin/products/delete/<%= p.id %>" onsubmit="return confirm('Удалить товар?')" style="display:inline">
+                                    <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+            <div class="empty-state"><p>Товаров пока нет</p></div>
+            <% } %>
+        </section>
+    </main>
+    <%- include('../partials/footer') %>
+</body>
+</html>

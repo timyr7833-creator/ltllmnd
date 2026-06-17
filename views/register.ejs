@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация — LTLLMND</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/header') %>
+    <main class="main-content">
+        <section class="section container">
+            <div class="auth-page">
+                <h1>Регистрация</h1>
+                <form method="POST" action="/register" class="auth-form">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <div class="form-group">
+                        <label class="form-label" for="first_name">Имя *</label>
+                        <input type="text" id="first_name" name="first_name" class="form-input"
+                               value="<%= formData.first_name || '' %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="last_name">Фамилия</label>
+                        <input type="text" id="last_name" name="last_name" class="form-input"
+                               value="<%= formData.last_name || '' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email *</label>
+                        <input type="email" id="email" name="email" class="form-input"
+                               value="<%= formData.email || '' %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Телефон</label>
+                        <input type="tel" id="phone" name="phone" class="form-input"
+                               value="<%= formData.phone || '' %>" placeholder="+7 (___) ___-__-__">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="password">Пароль * (мин. 6 символов)</label>
+                        <input type="password" id="password" name="password" class="form-input"
+                               required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="password_confirm">Повторите пароль *</label>
+                        <input type="password" id="password_confirm" name="password_confirm"
+                               class="form-input" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-black btn-full">Зарегистрироваться</button>
+                    <p class="auth-switch">Уже есть аккаунт? <a href="/login">Войти</a></p>
+                </form>
+            </div>
+        </section>
+    </main>
+    <%- include('partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина — LTLLMND</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/header') %>
+    <main class="main-content">
+        <section class="section container">
+            <h1 class="page-title">Корзина</h1>
+
+            <% if (cartItems.length > 0) { %>
+            <div class="cart-layout">
+                <div class="cart-items">
+                    <% cartItems.forEach(function(item) { %>
+                    <div class="cart-item">
+                        <div class="cart-item-image">
+                            <img src="/uploads/<%= item.product.main_image || '' %>"
+                                 alt="<%= item.product.name %>"
+                                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22160%22><rect fill=%22%23f0f0f0%22 width=%22120%22 height=%22160%22/></svg>'">
+                        </div>
+                        <div class="cart-item-info">
+                            <h3><%= item.product.name %></h3>
+                            <% if (item.size) { %><p class="cart-item-size">Размер: <%= item.size %></p><% } %>
+                            <p class="cart-item-price"><%= formatPrice(item.product.price) %> ₽</p>
+                        </div>
+                        <div class="cart-item-actions">
+                            <form method="POST" action="/cart/update" class="qty-form">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <% if (item.cartId) { %>
+                                    <input type="hidden" name="cartId" value="<%= item.cartId %>">
+                                <% } else { %>
+                                    <input type="hidden" name="index" value="<%= item.cartIndex %>">
+                                <% } %>
+                                <div class="quantity-selector quantity-sm">
+                                    <button type="submit" name="quantity" value="<%= item.quantity - 1 %>" class="qty-btn">−</button>
+                                    <span class="qty-display"><%= item.quantity %></span>
+                                    <button type="submit" name="quantity" value="<%= item.quantity + 1 %>" class="qty-btn">+</button>
+                                </div>
+                            </form>
+                            <p class="cart-item-subtotal"><%= formatPrice(item.subtotal) %> ₽</p>
+                            <form method="POST" action="/cart/remove">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <% if (item.cartId) { %>
+                                    <input type="hidden" name="cartId" value="<%= item.cartId %>">
+                                <% } else { %>
+                                    <input type="hidden" name="index" value="<%= item.cartIndex %>">
+                                <% } %>
+                                <button type="submit" class="remove-btn" title="Удалить">
+                                    <span class="material-icons-outlined">close</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <% }); %>
+                </div>
+                <div class="cart-summary">
+                    <h3>Итого</h3>
+                    <div class="summary-row"><span>Товары (<%= cartItems.length %>)</span><span><%= formatPrice(total) %> ₽</span></div>
+                    <div class="summary-row"><span>Доставка</span><span><%= total >= 10000 ? 'Бесплатно' : 'Рассчитывается' %></span></div>
+                    <div class="summary-total"><span>Итого</span><span><%= formatPrice(total) %> ₽</span></div>
+                    <a href="/checkout" class="btn btn-black btn-full">Оформить заказ</a>
+                </div>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <span class="material-icons-outlined">shopping_bag</span>
+                <p>Корзина пуста</p>
+                <a href="/catalog" class="btn btn-black">Перейти в каталог</a>
+            </div>
+            <% } %>
+        </section>
+    </main>
+    <%- include('partials/footer') %>
+    <script src="/js/main.js"></script>
+</body>
+</html>

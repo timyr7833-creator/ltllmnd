@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — LTLLMND</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/header') %>
+    <main class="main-content">
+        <section class="section container">
+            <div class="login-page">
+                <h1>Вход в панель управления</h1>
+                <form method="POST" action="/admin/login" class="login-form">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <div class="form-group">
+                        <label class="form-label" for="username">Логин</label>
+                        <input type="text" id="username" name="username" class="form-input" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="password">Пароль</label>
+                        <input type="password" id="password" name="password" class="form-input" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-black btn-full">Войти</button>
+                </form>
+            </div>
+        </section>
+    </main>
+    <%- include('partials/footer') %>
+</body>
+</html>
