@@ -1,11 +1,10 @@
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
-const sharp = require('sharp');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
 
 const ALLOWED_EXT = ['.png', '.jpg', '.jpeg', '.webp'];
 
-// ==================== SLUGIFY (исправленная версия) ====================
+// ==================== SLUGIFY ====================
 function slugify(text) {
     if (!text) return 'product-' + Date.now();
 
@@ -18,20 +17,13 @@ function slugify(text) {
     };
 
     let str = text.toString().toLowerCase();
-
-    // Транслитерация русского текста
     str = str.replace(/[а-яё]/g, char => translitMap[char] || char);
-
-    // Убираем всё кроме букв, цифр, пробелов и дефисов
     str = str.replace(/[^a-z0-9\s-]/g, '');
-
-    // Заменяем пробелы и множественные дефисы на один дефис
     str = str.replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
 
     return str || 'product-' + Date.now().toString(36);
 }
 
-// ==================== Остальные функции ====================
 function generateOrderNumber() {
     return 'LM-' + uuidv4().replace(/-/g, '').substring(0, 8).toUpperCase();
 }
@@ -41,25 +33,29 @@ function isAllowedFile(filename) {
     return ALLOWED_EXT.includes(ext);
 }
 
-async function processImage(inputPath, outputDir) {
-    const newName = uuidv4().replace(/-/g, '') + '.jpg';
-    const outputPath = path.join(outputDir, newName);
+// ==================== УДАЛЕНИЕ КАРТИНКИ (защищённая версия) ====================
+async function deleteImage(imageUrl) {
+    try {
+        if (!imageUrl || typeof imageUrl !== 'string') return;
+        if (imageUrl === 'no-image.png') return;
 
-    await sharp(inputPath)
-        .resize(1200, 1600, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 92 })
-        .toFile(outputPath);
-
-    fs.unlinkSync(inputPath); // удаляем оригинал
-    return newName;
-}
-
-function deleteImage(filename, uploadDir) {
-    if (filename && filename !== 'no-image.png') {
-        const filepath = path.join(uploadDir, filename);
-        if (fs.existsSync(filepath)) {
-            fs.unlinkSync(filepath);
+        // Если это URL Cloudinary — пытаемся удалить
+        if (imageUrl.includes('cloudinary.com')) {
+            const matches = imageUrl.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-z]+$/i);
+            if (matches && matches[1]) {
+                const publicId = matches[1];
+                try {
+                    await cloudinary.uploader.destroy(publicId);
+                    console.log(`✓ Удалена картинка из Cloudinary: ${publicId}`);
+                } catch (cloudErr) {
+                    console.error('⚠ Cloudinary не удалил картинку (игнор):', cloudErr.message);
+                }
+            }
+        } else {
+            console.log(`ℹ Пропуск удаления локального файла: ${imageUrl}`);
         }
+    } catch (err) {
+        console.error('⚠ Ошибка в deleteImage (игнорируется):', err.message);
     }
 }
 
@@ -89,7 +85,6 @@ module.exports = {
     generateOrderNumber,
     slugify,
     isAllowedFile,
-    processImage,
     deleteImage,
     formatPrice,
     STATUS_NAMES,
